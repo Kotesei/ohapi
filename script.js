@@ -31,7 +31,7 @@ async function fetchUnits(groups) {
          let unitDataStartingPoints = []
          let unitDataEndingPoints = []
          const unitData = []
-
+        
          // Create starting and end points for the units
          data.values.map((row, pos) => {
             if (row.includes("Splash Art")){
@@ -50,19 +50,39 @@ async function fetchUnits(groups) {
          })
 
          unitData.map(unit => {
-            console.log(unit)
             const name = unit[0][0]
             const awakeningAccessoryName = unit[0][21]
             const awakeningAccessoryDecription = unit[1][23]
+            const skillsArray = [];
 
-            // To-do: through skills and get the SP cost and description
+            // Loops through skills to get the SP cost and description 
+            // To-do: (probably label if skill is EX/TP or not in future)
+            unit.map((row, pos) => {
+               if (row.includes("EX")){
+                  const skills = unit.slice(1, pos + 1)
+                  skills.map(skill => {
+                     // Skip any rows that are empty
+                     if (!skill.length < 1) {
+                        if (skill[7]) {
+                           const skillDescription = skill[7]
+                           const spCost = skill[6]
+                           console.log()
+                         skillsArray.push({skillDescription: skillDescription, spCost: spCost})
+                        }
+                     }
+                  })
+               }
+            })
+
+
             // Also create a relation-link object that understands parts like =HP =SP etc.. in the sheet
             // Clean out any empty arrays from the unit array. 
 
             units.push({
                name: name,
                awakeningAccessoryName: awakeningAccessoryName,
-               awakeningAccessoryDecription: awakeningAccessoryDecription
+               awakeningAccessoryDecription: awakeningAccessoryDecription,
+               skills: skillsArray
             })
          })
 
