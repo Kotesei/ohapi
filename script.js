@@ -51,29 +51,45 @@ async function fetchUnits(groups) {
 
          unitData.map(unit => {
             const name = unit[0][0]
-            const awakeningAccessoryName = unit[0][21]
-            const awakeningAccessoryDecription = unit[1][23]
+            const a4Acc = {itemName: unit[0][21], description: unit[1][23]}
             const skillsArray = [];
-
-            // Loops through skills to get the SP cost and description 
-            // To-do: (probably label if skill is EX/TP or not in future)
+            let startRange;
+            let endRange;
+            
+            // Loops through the rows in the unit array to get the details
             unit.map((row, pos) => {
+
+               // Create the starting and end points for the unit's stats by finding which row can be used
+                if (row[0] && row[0].includes("=HP")) {
+                        startRange = pos
+                     }
+               if (row.includes("=SPD")) {
+                  endRange = pos + 1
+               }
+
                if (row.includes("EX")){
                   const skills = unit.slice(1, pos + 1)
                   skills.map(skill => {
                      // Skip any rows that are empty
                      if (!skill.length < 1) {
+                          
                         if (skill[7]) {
                            const skillDescription = skill[7]
                            const spCost = skill[6]
+                           // [Make use of skillDescription for tasks below]
+                           // To-do: Create a keyword list to apply types to skills based off if it's a Buff, Debuff, Heal, Attack skill
+                           // To-do: Get the attack type of the skill and also try to tell if its a buff to allow a certain type of weak attack as a buff since this is not the same as attacking
+
+                           // Include the EX skill condition, ignore the SP cost since EX skills are condition based not SP based.
                            if (skill.includes("EX")) {
                               const condition = {
                                  turns: skill[skill.indexOf("=Unlock") - 1],
                                  requirements: skill[skill.indexOf("=Unlock") + 1]
                               }
-                              skillsArray.push({skillDescription: skillDescription, condition: condition})
+                              skillsArray.push({skillDescription, condition})
                            } else {
-                              skillsArray.push({skillDescription: skillDescription, spCost: spCost})
+                              // If the array has the "TP" in the skill row then mark it true, otherwise continue as normal
+                              skill.includes("TP") ? skillsArray.push({skillDescription, spCost, tpSkill: true}) : skillsArray.push({skillDescription, spCost});                              
                            }
                         }
                      }
@@ -81,15 +97,32 @@ async function fetchUnits(groups) {
                }
             })
 
+            // Create the array for the stats using the ranges from earlier loop
+            const statsArray = unit.slice(startRange, endRange)
+            const stats = [];
+            // Loop through each stat, clean anything that doesn't belong, and then store inside object
+            statsArray.map((row, pos) => {
+               const stat = row[0].replace("=", "");
+               const statValues = {
+                  stat,
+                  lv100: row[1],
+                  lv120: row[3]
+               }
+               stats.push(statValues)
+            })
 
-            // Also create a relation-link object that understands parts like =HP =SP etc.. in the sheet
-            // Clean out any empty arrays from the unit array. 
+            // To-do Clean out any empty arrays from the unit array. 
 
             units.push({
                name: name,
-               awakeningAccessoryName: awakeningAccessoryName,
-               awakeningAccessoryDecription: awakeningAccessoryDecription,
-               skills: skillsArray
+               a4Acc,
+               skills: skillsArray,
+               stats
+               // Missing the Influence
+               // Missing the Passives
+               // Missing the Rarity
+               // Missing the Release Date
+               // Missing the VA
             })
          })
 
