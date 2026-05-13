@@ -66,8 +66,15 @@ async function fetchUnits(groups) {
                         if (skill[7]) {
                            const skillDescription = skill[7]
                            const spCost = skill[6]
-                           console.log()
-                         skillsArray.push({skillDescription: skillDescription, spCost: spCost})
+                           if (skill.includes("EX")) {
+                              const condition = {
+                                 turns: skill[skill.indexOf("=Unlock") - 1],
+                                 requirements: skill[skill.indexOf("=Unlock") + 1]
+                              }
+                              skillsArray.push({skillDescription: skillDescription, condition: condition})
+                           } else {
+                              skillsArray.push({skillDescription: skillDescription, spCost: spCost})
+                           }
                         }
                      }
                   })
