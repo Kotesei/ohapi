@@ -55,7 +55,7 @@ async function fetchUnits(groups) {
             const skillsArray = [];
             let startRange;
             let endRange;
-            
+              console.log("====", unit[0][0], "====")
             // Loops through the rows in the unit array to get the details
             unit.map((row, pos) => {
 
@@ -66,16 +66,23 @@ async function fetchUnits(groups) {
                if (row.includes("=SPD")) {
                   endRange = pos + 1
                }
-
+          
                if (row.includes("EX")){
                   const skills = unit.slice(1, pos + 1)
                   skills.map(skill => {
                      // Skip any rows that are empty
-                     if (!skill.length < 1) {
-                          
+                     if (!skill.length < 1) {            
                         if (skill[7]) {
                            const skillDescription = skill[7]
                            const spCost = skill[6]
+                           // Get the index for SP cost that changes over the couse of leveling
+                           const spCostReducedIndex = skill.findIndex(test => typeof test === "string" && test.includes("->") && test.includes("SP") && test.includes(":"))
+                           
+                           if (spCostReducedIndex > 0) {
+                              console.log(skill, skill[spCostReducedIndex])
+                           } else {
+                              console.log(skill)
+                           }
                            // [Make use of skillDescription for tasks below]
                            // To-do: Create a keyword list to apply types to skills based off if it's a Buff, Debuff, Heal, Attack skill
                            // To-do: Get the attack type of the skill and also try to tell if its a buff to allow a certain type of weak attack as a buff since this is not the same as attacking
@@ -89,7 +96,16 @@ async function fetchUnits(groups) {
                               skillsArray.push({skillDescription, condition})
                            } else {
                               // If the array has the "TP" in the skill row then mark it true, otherwise continue as normal
-                              skill.includes("TP") ? skillsArray.push({skillDescription, spCost, tpSkill: true}) : skillsArray.push({skillDescription, spCost});                              
+                              if (skill.includes("TP")) {
+                                 skillsArray.push({skillDescription, spCost, tpSkill: true})
+                              } else {
+                                 // Checks if there's anything to trigger the index for any skills that are upgraded via levels, otherwise continue as normal
+                                 if (spCostReducedIndex > 0) {
+                                    skillsArray.push({skillDescription, spCost, skillUpgrade: skill[spCostReducedIndex]})
+                                 } else {
+                                    skillsArray.push({skillDescription, spCost})
+                                 }
+                              }
                            }
                         }
                      }
@@ -116,7 +132,7 @@ async function fetchUnits(groups) {
             units.push({
                name: name,
                a4Acc,
-               skills: skillsArray,
+               skills: skillsArray, 
                stats
                // Missing the Influence
                // Missing the Passives
