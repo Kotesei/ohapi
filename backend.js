@@ -11,6 +11,7 @@ const API_KEY = process.env.API_KEY;
 
 const app = express();
 app.use(cors());
+app.use(express.json());
 const port = 3000;
 
 let unitsData;
@@ -47,4 +48,28 @@ app.get("/api", (req, res) => {
 
 app.listen(port, () => {
   console.log(`Listening on port ${port}`);
+});
+
+// Mostly used for renaming purposes and storing th unit's sprite/banner img in a folder neatly
+app.post("/rename", (req, res) => {
+  const { imgData } = req.body;
+  imgData.map((unit) => {
+    const { name, unitImg, bannerImg, rename } = unit;
+    const [small, big] = rename;
+    const spriteLocation = unitImg.replace(
+      "http://127.0.0.1:5501/",
+      "./Resources/",
+    );
+    const bannerLocation = bannerImg.replace(
+      "http://127.0.0.1:5501/",
+      "./Resources/",
+    );
+    const destPath = `./Resources/resources/${name}`;
+    if (!fs.existsSync(destPath)) {
+      fs.mkdirSync(destPath, { recursive: true });
+      console.log(`Created missing directory: ${destPath}`);
+      fs.copyFileSync(spriteLocation, `${destPath}/${small}`);
+      fs.copyFileSync(bannerLocation, `${destPath}/${big}`);
+    }
+  });
 });
