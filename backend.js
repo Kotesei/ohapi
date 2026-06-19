@@ -30,20 +30,40 @@ if (!fs.existsSync("./units.json")) {
       }
     }),
   );
-
   fs.writeFileSync("./units.json", JSON.stringify(unitsData, null, 2));
   console.log("DONE!!");
 } else {
   console.log("Loaded units.json file");
+  unitsData = fs.readFileSync("./units.json", "utf-8");
 }
 
+const units = JSON.parse(unitsData);
 // Used for testing / updating purposes [THIS SHOULD NOT BE USED IN PRODUCTION, ONLY USE FOR FRONT END TESTING OR UPDATING THE PARSEUNITS FUNCTION!!!]
 // app.get("/", (req, res) => res.end(API_KEY));
-
-app.get("/api", (req, res) => {
+app.get("/api/characters", (req, res) => {
   res.writeHead(200, { "content-type": "application/json" });
-  const units = fs.readFileSync("./units.json", "utf-8");
-  res.end(units);
+  res.end(JSON.stringify(units, null, 2));
+});
+
+app.get("/api/character/:name", (req, res) => {
+  res.writeHead(200, { "content-type": "application/json" });
+  const unit = units.filter(
+    (unit) => unit.name === req.params.name.replace("_", " "),
+  );
+  res.end(JSON.stringify(unit[0], null, 2));
+});
+
+app.get("/api/character/:name/banner", (req, res) => {
+  res.writeHead(200, { "Content-Type": "image/png" });
+  const imgDir = `./character_assets/${req.params.name.replace("_", " ")}/${req.params.name.replace("_", " ")}_big.jpg`;
+  const img = fs.readFileSync(imgDir);
+  res.end(img);
+});
+app.get("/api/character/:name/sprite", (req, res) => {
+  res.writeHead(200, { "Content-Type": "image/png" });
+  const imgDir = `./character_assets/${req.params.name.replace("_", " ")}/${req.params.name.replace("_", " ")}_small.jpg`;
+  const img = fs.readFileSync(imgDir);
+  res.end(img);
 });
 
 app.listen(port, () => {
